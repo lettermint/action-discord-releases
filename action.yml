@@ -16,11 +16,11 @@ inputs:
   username:
     description: 'Webhook username override'
     required: false
-    default: 'Release Changelog'
+    default: 'GitHub Releases'
   avatar_url:
     description: 'Webhook avatar URL'
     required: false
-    default: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/1f4e6.png'
+    default: 'https://emoji-cdn.mqrio.dev/%F0%9F%93%A6?style=microsoft-3D-fluent'
   content:
     description: 'Message content (appears above embed)'
     required: false
@@ -28,7 +28,7 @@ inputs:
   footer:
     description: 'Footer text'
     required: false
-    default: 'Powered by [Lettermint](https://lettermint.co)'
+    default: 'Powered by Lettermint · lettermint.co'
 
 runs:
   using: 'node20'

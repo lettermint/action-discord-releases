@@ -117,12 +117,12 @@ async function run(): Promise<void> {
   try {
     const webhookUrl = core.getInput('webhook_url', { required: true });
     const color = core.getInput('color') || '8892be';
-    const username = core.getInput('username') || 'Release Changelog';
+    const username = core.getInput('username') || 'GitHub Release';
     const avatarUrl =
       core.getInput('avatar_url') ||
-      'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/1f4e6.png';
+      'https://emoji-cdn.mqrio.dev/%F0%9F%93%A6?style=microsoft-3D-fluent';
     const content = core.getInput('content') || 'A new release is now available!';
-    const footer = core.getInput('footer') || 'Powered by [Lettermint](https://lettermint.co)';
+    const footer = core.getInput('footer') || 'Powered by Lettermint · lettermint.co';
 
     validateWebhookUrl(webhookUrl);
 

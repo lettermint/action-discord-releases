@@ -22,7 +22,7 @@ describe('Discord Webhook Action', () => {
       const inputs: Record<string, string> = {
         webhook_url: 'https://discord.com/api/webhooks/123/abc',
         color: '8892be',
-        username: 'Release Changelog',
+        username: 'GitHub Release',
         avatar_url: 'https://cdn.discordapp.com/avatars/test.png',
         content: 'A new release is now available!',
         footer: 'Delivered by Lettermint | lettermint.co',

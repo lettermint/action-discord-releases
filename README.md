@@ -36,10 +36,10 @@ jobs:
 |-------|-------------|----------|---------|
 | `webhook_url` | Discord webhook URL (use secrets!) | **Yes** | - |
 | `color` | Embed color in hex (without #) | No | `8892be` |
-| `username` | Webhook username override | No | `Release Changelog` |
+| `username` | Webhook username override | No | `GitHub Release` |
 | `avatar_url` | Webhook avatar URL | No | Package emoji 📦 |
 | `content` | Message content (appears above embed) | No | `A new release is now available!` |
-| `footer` | Footer text | No | `Powered by [Lettermint](https://lettermint.co)` |
+| `footer` | Footer text | No | `Powered by Lettermint · lettermint.co` |
 
 ## Usage Examples
 
@@ -223,14 +223,10 @@ Contributions are welcome! Please:
 
 MIT License - see [LICENSE](LICENSE) for details
 
-## About Lettermint
-
-This action is brought to you by [Lettermint](https://lettermint.co).
-
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/lettermint/action-discord-releases/issues)
 
 ---
 
-Made with ❤️ by [Lettermint](https://lettermint.co)
+Made with ❤️ by Lettermint · lettermint.co
