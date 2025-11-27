@@ -1,0 +1,35 @@
+name: 'Discord Release Webhook'
+description: 'Post release announcements to Discord via webhook'
+author: 'Lettermint'
+branding:
+  icon: 'message-circle'
+  color: 'purple'
+
+inputs:
+  webhook_url:
+    description: 'Discord webhook URL (use secrets)'
+    required: true
+  color:
+    description: 'Embed color in hex (without #)'
+    required: false
+    default: '8892be'
+  username:
+    description: 'Webhook username override'
+    required: false
+    default: 'Release Changelog'
+  avatar_url:
+    description: 'Webhook avatar URL'
+    required: false
+    default: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/1f4e6.png'
+  content:
+    description: 'Message content (appears above embed)'
+    required: false
+    default: 'A new release is now available!'
+  footer:
+    description: 'Footer text'
+    required: false
+    default: 'Powered by [Lettermint](https://lettermint.co)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

@@ -1,0 +1,9 @@
+node_modules/
+lib/
+coverage/
+*.log
+.DS_Store
+.idea/
+*.swp
+*.swo
+*~
