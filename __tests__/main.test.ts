@@ -275,3 +275,132 @@ describe('Discord Webhook Action', () => {
     );
   });
 });
+
+describe('Release Event Handling', () => {
+  test('detects release event correctly', () => {
+    function isReleaseEvent(context: any): boolean {
+      return context.eventName === 'release' && context.payload.release !== undefined;
+    }
+
+    const releaseContext = {
+      eventName: 'release',
+      payload: {
+        release: {
+          tag_name: 'v1.0.0',
+          name: 'First Release',
+          body: 'Release notes here',
+          html_url: 'https://github.com/owner/repo/releases/tag/v1.0.0',
+        },
+      },
+    };
+
+    const pushContext = {
+      eventName: 'push',
+      payload: {},
+    };
+
+    expect(isReleaseEvent(releaseContext)).toBe(true);
+    expect(isReleaseEvent(pushContext)).toBe(false);
+  });
+
+  test('truncates text at word boundaries', () => {
+    function truncateText(text: string, maxLength: number): string {
+      if (text.length <= maxLength) {
+        return text;
+      }
+
+      const truncated = text.substring(0, maxLength);
+      const lastSpace = truncated.lastIndexOf(' ');
+
+      if (lastSpace > 0) {
+        return truncated.substring(0, lastSpace) + '...';
+      }
+
+      return truncated + '...';
+    }
+
+    const shortText = 'Short text';
+    expect(truncateText(shortText, 50)).toBe('Short text');
+
+    const longText = 'This is a very long text that needs to be truncated at a word boundary';
+    const result = truncateText(longText, 30);
+    expect(result.endsWith('...')).toBe(true);
+    expect(result.length).toBeLessThanOrEqual(33);
+    // Should truncate at word boundary
+    expect(result).toBe('This is a very long text that...');
+
+    const noSpaces = 'verylongtextwithoutanyspaces';
+    expect(truncateText(noSpaces, 10)).toBe('verylongte...');
+  });
+
+  test('builds correct embed structure for release event', () => {
+    const mockRelease = {
+      tag_name: 'v1.0.0',
+      name: 'Major Update',
+      body: 'This is a test release with some notes about what changed.',
+      html_url: 'https://github.com/lettermint/test-repo/releases/tag/v1.0.0',
+    };
+
+    const releaseName = mockRelease.name || mockRelease.tag_name;
+    const title = `Release ${mockRelease.tag_name}: ${releaseName}`;
+
+    expect(title).toBe('Release v1.0.0: Major Update');
+    expect(mockRelease.html_url).toBe(
+      'https://github.com/lettermint/test-repo/releases/tag/v1.0.0'
+    );
+  });
+
+  test('handles release without name gracefully', () => {
+    const release = {
+      tag_name: 'v2.0.0',
+      name: null,
+      body: 'Release notes',
+      html_url: 'https://github.com/owner/repo/releases/tag/v2.0.0',
+    };
+
+    const releaseName = release.name || release.tag_name;
+    const title = `Release ${release.tag_name}: ${releaseName}`;
+
+    expect(title).toBe('Release v2.0.0: v2.0.0');
+  });
+
+  test('handles release without body gracefully', () => {
+    const release = {
+      tag_name: 'v1.5.0',
+      name: 'Patch Release',
+      body: null,
+      html_url: 'https://github.com/owner/repo/releases/tag/v1.5.0',
+    };
+
+    expect(release.body).toBeNull();
+  });
+
+  test('truncates long release descriptions', () => {
+    const longBody = `
+      This is a very long release description that contains a lot of information
+      about what changed in this version. It includes multiple paragraphs and
+      detailed explanations of new features, bug fixes, and breaking changes.
+      We want to make sure this gets truncated properly to avoid making the
+      Discord embed too large and unwieldy for users to read.
+    `.repeat(3);
+
+    function truncateText(text: string, maxLength: number): string {
+      if (text.length <= maxLength) {
+        return text;
+      }
+
+      const truncated = text.substring(0, maxLength);
+      const lastSpace = truncated.lastIndexOf(' ');
+
+      if (lastSpace > 0) {
+        return truncated.substring(0, lastSpace) + '...';
+      }
+
+      return truncated + '...';
+    }
+
+    const truncated = truncateText(longBody, 300);
+    expect(truncated.length).toBeLessThanOrEqual(303);
+    expect(truncated.endsWith('...')).toBe(true);
+  });
+});

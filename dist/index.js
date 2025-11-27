@@ -30224,33 +30224,84 @@ function getBranchName(ref) {
     }
     return ref;
 }
+function isReleaseEvent(context) {
+    return context.eventName === 'release' && context.payload.release !== undefined;
+}
+function truncateText(text, maxLength) {
+    if (text.length <= maxLength) {
+        return text;
+    }
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 0) {
+        return truncated.substring(0, lastSpace) + '...';
+    }
+    return truncated + '...';
+}
 function buildEmbed(inputs) {
     const { context } = github;
+    const isRelease = isReleaseEvent(context);
+    const release = isRelease ? context.payload.release : null;
     const repoFullName = `${context.repo.owner}/${context.repo.repo}`;
     const repoUrl = `https://github.com/${repoFullName}`;
     const commitUrl = `${repoUrl}/commit/${context.sha}`;
     const branchName = getBranchName(context.ref);
     const shortSha = context.sha.substring(0, 7);
-    const fields = [
-        {
+    let title;
+    let url;
+    if (isRelease && release) {
+        const releaseName = release.name || release.tag_name;
+        title = `Release ${release.tag_name}: ${releaseName}`;
+        url = release.html_url;
+    }
+    else {
+        title = repoFullName;
+        url = repoUrl;
+    }
+    const fields = [];
+    if (isRelease && release) {
+        // For release events: show Repository and Version
+        fields.push({
             name: '📦 Repository',
             value: `[${repoFullName}](${repoUrl})`,
             inline: true,
-        },
-        {
+        });
+        fields.push({
+            name: '🏷️ Version',
+            value: release.tag_name,
+            inline: true,
+        });
+    }
+    else {
+        // For non-release events: show Repository, Branch, Commit (original behavior)
+        fields.push({
+            name: '📦 Repository',
+            value: `[${repoFullName}](${repoUrl})`,
+            inline: true,
+        });
+        fields.push({
             name: '🌿 Branch',
             value: branchName,
             inline: true,
-        },
-        {
+        });
+        fields.push({
             name: '🔗 Commit',
             value: `[\`${shortSha}\`](${commitUrl})`,
             inline: true,
-        },
-    ];
+        });
+    }
+    // Add release notes if available
+    if (isRelease && release && release.body) {
+        const truncatedBody = truncateText(release.body, 300);
+        fields.unshift({
+            name: '📝 Release Notes',
+            value: `${truncatedBody}\n\n[Read more →](${release.html_url})`,
+            inline: false,
+        });
+    }
     return {
-        title: repoFullName,
-        url: repoUrl,
+        title,
+        url,
         color: hexToDecimal(inputs.color),
         timestamp: new Date().toISOString(),
         fields,
@@ -30292,11 +30343,11 @@ async function run() {
     try {
         const webhookUrl = core.getInput('webhook_url', { required: true });
         const color = core.getInput('color') || '8892be';
-        const username = core.getInput('username') || 'Release Changelog';
+        const username = core.getInput('username') || 'GitHub Release';
         const avatarUrl = core.getInput('avatar_url') ||
-            'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/1f4e6.png';
+            'https://emoji-cdn.mqrio.dev/%F0%9F%93%A6?style=microsoft-3D-fluent';
         const content = core.getInput('content') || 'A new release is now available!';
-        const footer = core.getInput('footer') || 'Powered by [Lettermint](https://lettermint.co)';
+        const footer = core.getInput('footer') || 'Powered by Lettermint · lettermint.co';
         validateWebhookUrl(webhookUrl);
         const inputs = {
             color,
@@ -30310,9 +30361,17 @@ async function run() {
             embeds: [embed],
         };
         core.info('Sending Discord webhook...');
-        core.info(`Repository: ${github.context.repo.owner}/${github.context.repo.repo}`);
-        core.info(`Branch: ${getBranchName(github.context.ref)}`);
-        core.info(`Commit: ${github.context.sha.substring(0, 7)}`);
+        if (isReleaseEvent(github.context)) {
+            const release = github.context.payload.release;
+            core.info(`Release Event Detected: ${release.tag_name}`);
+            core.info(`Release Name: ${release.name || 'N/A'}`);
+            core.info(`Repository: ${github.context.repo.owner}/${github.context.repo.repo}`);
+        }
+        else {
+            core.info(`Repository: ${github.context.repo.owner}/${github.context.repo.repo}`);
+            core.info(`Branch: ${getBranchName(github.context.ref)}`);
+            core.info(`Commit: ${github.context.sha.substring(0, 7)}`);
+        }
         await sendWebhook(webhookUrl, payload);
         core.setOutput('success', 'true');
     }
